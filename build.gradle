@@ -1,0 +1,50 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.4.0'
+    id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'basic'
+version = '0.0.1-SNAPSHOT'
+
+ext.springVersion = '5.3.19'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter'
+    compileOnly 'org.projectlombok:lombok'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.13.3'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.13.3'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.13.3'
+    // spring
+    implementation group: 'org.springframework', name: 'spring-webmvc', version: "${springVersion}"
+    implementation group: 'org.springframework', name: 'spring-core', version: "${springVersion}"
+    implementation group: 'org.springframework', name: 'spring-context', version: "${springVersion}"
+    implementation group: 'org.springframework', name: 'spring-aop', version: "${springVersion}"
+    implementation group: 'org.springframework', name: 'spring-context-support', version: "${springVersion}"
+
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
