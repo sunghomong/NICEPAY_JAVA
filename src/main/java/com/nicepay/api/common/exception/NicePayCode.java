@@ -14,6 +14,7 @@ import lombok.Getter;
 public enum NicePayCode {
 
     OK("2000","성공(Success)"),
+    NET_CANCEL_FAIL("2015","망 취소에 실패하였습니다."),
     BAD_REQUEST("4000","잘못된 요청입니다. 요청 형식을 확인해 주세요. (Bad Request)"),
     INVALID_DATA_ERROR("4001", "유효하지 않은 데이터입니다. (Invalid Data)"),
     DUPLICATE_ERROR("4002", "중복된 값입니다. (Duplicate Data error)"),
