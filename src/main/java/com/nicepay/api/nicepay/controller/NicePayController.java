@@ -3,6 +3,7 @@ package com.nicepay.api.nicepay.controller;
 import com.nicepay.api.common.exception.NicePayCode;
 import com.nicepay.api.common.exception.NicePayException;
 import com.nicepay.api.common.model.NicePayResponse;
+import com.nicepay.api.nicepay.model.request.CancelPayRequest;
 import com.nicepay.api.nicepay.model.request.NetCancelRequest;
 import com.nicepay.api.nicepay.model.request.TransactionStatusRequest;
 import com.nicepay.api.nicepay.service.NicePayService;
@@ -13,12 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * NicePayController
- * Desc : comment
+ * Desc : 나이스 페이 api
  *
  * @author : Sung Ho Cho
- * @version : 1.1
- * Date : 2024-12-26
+ * @version : 1.2
+ * Date : 2024-12-27
  */
 
 @RestController
@@ -36,12 +36,30 @@ public class NicePayController {
      * TID 거래 상태 조회 요청 API
      *
      * @param request 거래 내역 조회 request
-     * @return TransactionStatusResponse 거래 내역
+     * @return NicePayResponse<TransactionStatusResponse>
      * */
     @PostMapping(value = "/getTransactionStatus")
-    public NicePayResponse<?> getTransactionStatus(@RequestBody TransactionStatusRequest request) throws NicePayException {
+    public NicePayResponse<?> getTransactionStatus(@RequestBody TransactionStatusRequest request) {
         try {
             return new NicePayResponse<>(NicePayCode.OK,nicePayService.getTransactionStatus(request));
+        }catch (NicePayException ne) {
+            return new NicePayResponse<>(ne.getCode(),ne.getMessage());
+        }catch (Exception e) {
+            log.error("[nice pay] 거래 내역 조회 오류 : ", e);
+            return new NicePayResponse<>(NicePayCode.SERVER_ERROR,null);
+        }
+    }
+
+    /**
+     * 승인 취소 요청 API
+     *
+     * @param request 승인 요청 취소 request
+     * @return NicePayResponse<CancelPayResponse>
+     * */
+    @PostMapping(value = "/cancelNicePay")
+    public NicePayResponse<?> cancelNicePay(@RequestBody CancelPayRequest request) {
+        try {
+            return new NicePayResponse<>(NicePayCode.OK,nicePayService.cancelNicePay(request));
         }catch (NicePayException ne) {
             return new NicePayResponse<>(ne.getCode(),ne.getMessage());
         }catch (Exception e) {
