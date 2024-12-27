@@ -7,23 +7,23 @@ import lombok.Setter;
  * 망취소 요청 객체
  *
  * @author : Sung Ho Cho
- * @version : 1.0
- * Date : 2024-12-26
+ * @version : 1.1
+ * Date : 2024-12-27
  */
 
 @Getter
 @Setter
 public class NetCancelRequest {
 
-    /** 거래 구분 TID (required) */
+    /** 거래번호, 인증결과로 받은 TxTid 파라미터 설정 (required) */
     private String tid;
-    /** 토큰 (required) */
+    /** 인증 TOKEN, 인증결과로 받은 AuthToken 파라미터 설정 (required) */
     private String authToken;
     /** 상점 ID (required) */
     private String mid;
     /** 결제금액 (required) */
     private String amt;
-    /** 생성일시 (required) */
+    /** 전문생성일시 (YYYY MM DD HH MISS) (required) */
     private String ediDate;
     /** 망취소 여부, 망취소 시 “1” 설정 (required) */
     private String netCancel;

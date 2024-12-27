@@ -4,12 +4,15 @@ import com.nicepay.api.common.exception.NicePayCode;
 import com.nicepay.api.common.exception.NicePayException;
 import com.nicepay.api.common.model.NicePayResponse;
 import com.nicepay.api.common.util.Hashing;
+import com.nicepay.api.nicepay.model.request.CancelPayRequest;
 import com.nicepay.api.nicepay.model.request.NetCancelRequest;
 import com.nicepay.api.nicepay.model.request.TransactionStatusRequest;
+import com.nicepay.api.nicepay.model.response.CancelPayResponse;
 import com.nicepay.api.nicepay.model.response.TransactionStatusResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
@@ -19,8 +22,8 @@ import org.springframework.web.client.RestTemplate;
  * Desc : NicePayController 호출 ex
  *
  * @author : Sung Ho Cho
- * @version : 1.0
- * Date : 2024-12-26
+ * @version : 1.1
+ * Date : 2024-12-27
  */
 @RestController
 @RequestMapping("/testController")
@@ -81,6 +84,45 @@ public class CallController {
                 new ParameterizedTypeReference<NicePayResponse<Void>>() {}
         );
     }
+
+    /**
+     * nice pay 승인 취소
+     * @apiNote : 결제건은 존재하지만 예약자가 없는 케이스
+     * */
+    @PostMapping("/cancelNicePay")
+    public void cancelNicePay() throws NicePayException {
+        CancelPayRequest req = new CancelPayRequest();
+        req.setTid("TID");
+        req.setMid("MID");
+        req.setMoid("내부 고유 값(PK)");
+        req.setCancelAmt("100");
+        req.setCancelMsg("환불 요청에 따른 취소");
+        req.setPartialCancelCode("1");
+        req.setEdiDate("승인 요청 시 보낸 생성일시");
+
+        String plainText = req.getTid() + req.getCancelAmt() + req.getEdiDate() + "상점키"; // (MID + CancelAmt + EdiDate + 상점키)
+        String hashingText = Hashing.encrypt(plainText.getBytes());
+
+        req.setSignData(hashingText);
+
+        /* 나머지 필요에 따라 추가 가능 ex) */
+        req.setRefundAcctNm("계좌 번호");
+        req.setRefundAcctNo("은행 코드");
+        req.setRefundBankCd("계좌주명");
+
+        NicePayResponse<CancelPayResponse> response = sendRequest(
+                "/nicePay/cancelNicePay",
+                req,
+                new ParameterizedTypeReference<>() {}
+        );
+
+        if (!response.getResultCode().equals(NicePayCode.OK.getCode())) {
+            throw new NicePayException(response.getResultCode(),response.getResultMessage());
+        }
+
+        // TODO 필요에 따라 내부 데이터 업데이트 가능 CancelPayResponse cancelPayResponse = response.getData();...
+    }
+
 
 
     /**

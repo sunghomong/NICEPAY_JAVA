@@ -3,12 +3,11 @@ package com.nicepay.api.common.exception;
 import lombok.Getter;
 
 /**
- * NicePayCode
- * Desc : comment
+ * Desc : nicePayCode 값 내부 코드값으로 변경
  *
  * @author : Sung Ho Cho
- * @version : 1.0
- * Date : 2024-12-18
+ * @version : 1.1
+ * Date : 2024-12-27
  */
 @Getter
 public enum NicePayCode {
@@ -19,6 +18,7 @@ public enum NicePayCode {
     INVALID_DATA_ERROR("4001", "유효하지 않은 데이터입니다. (Invalid Data)"),
     DUPLICATE_ERROR("4002", "중복된 값입니다. (Duplicate Data error)"),
     REQUIRED_DATA_NULL("4003", "필수 입력 파라미터가 누락되었습니다. (required data is null)"),
+    CANCEL_PAY_FAIL("4004", "승인 요청 취소에 실패하였습니다. (cancel fail)"),
     SERVER_ERROR("5000", "서버 처리중 에러가 발생 했습니다. 관리자에게 문의하세요. (Internal Server Error)"),
     CODE_ERROR("6000", "미등록된 에러코드입니다. 관리자에게 문의하세요. (Code Error)"),
     FORMAT_ERROR("9996", "데이터 포맷 오류"),

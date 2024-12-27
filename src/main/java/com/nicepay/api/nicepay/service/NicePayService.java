@@ -4,8 +4,10 @@ import com.nicepay.api.common.exception.NicePayCode;
 import com.nicepay.api.common.exception.NicePayException;
 import com.nicepay.api.common.util.Connection;
 import com.nicepay.api.common.util.ValidCheck;
+import com.nicepay.api.nicepay.model.request.CancelPayRequest;
 import com.nicepay.api.nicepay.model.request.NetCancelRequest;
 import com.nicepay.api.nicepay.model.request.TransactionStatusRequest;
+import com.nicepay.api.nicepay.model.response.CancelPayResponse;
 import com.nicepay.api.nicepay.model.response.NetCancelResponse;
 import com.nicepay.api.nicepay.model.response.TransactionStatusResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -19,15 +21,18 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 /**
  * NicePayService
  * Desc : comment
  *
  * @author : Sung Ho Cho
- * @version : 1.1
- * Date : 2024-12-26
+ * @version : 1.2
+ * Date : 2024-12-27
  */
 
 @Service
@@ -36,6 +41,8 @@ public class NicePayService {
 
     @Value("${nicepay.transactionStatus}")
     private String transactionStatusUrl;
+    @Value("${nicepay.cancelUrl}")
+    private String cancelUrl;
 
     private static final long SCHEDULE_DELAY_10_MS = 10 * 60 * 1000;
     private final ThreadPoolTaskScheduler scheduler;
@@ -168,5 +175,43 @@ public class NicePayService {
                 log.error("[nice pay] net cancel fail cause : ", e);
             }
         },new Date(System.currentTimeMillis() + SCHEDULE_DELAY_10_MS)); // 10분
+    }
+
+    public CancelPayResponse cancelNicePay(CancelPayRequest request) throws NicePayException {
+        log.info("결제 취소 요청 request : {}", request);
+
+        MultiValueMap<String, String> requestData = new LinkedMultiValueMap<>();
+
+        requestData.add("TID", request.getTid());
+        requestData.add("MID", request.getMid());
+        requestData.add("Moid", request.getMoid());
+        requestData.add("CancelAmt", request.getCancelAmt());
+        requestData.add("CancelMsg", request.getCancelMsg());
+        requestData.add("PartialCancelCode", "0"); // 부분취소 여부(전체취소: 0 / 부분취소: 1)
+        requestData.add("EdiDate", request.getEdiDate());
+        requestData.add("SignData", request.getSignData());
+
+        /* 필요에 따라 추가 가능 */
+        requestData.add("RefundAcctNo", request.getRefundAcctNo());
+        requestData.add("RefundBankCd", request.getRefundBankCd());
+        requestData.add("RefundAcctNm", request.getRefundAcctNm());
+
+        CancelPayResponse response = Connection.sendRequest(
+                cancelUrl,
+                requestData,
+                createFormHeaders(),
+                CancelPayResponse.class
+        );
+
+        if(!isResponseSuccessCheck(response.getResultCode())){
+            throw new NicePayException(NicePayCode.CANCEL_PAY_FAIL.getCode(),response.getErrorMsg());
+        }
+
+        return response;
+    }
+
+    private boolean isResponseSuccessCheck(String code) {
+        List<String> successList = Arrays.asList("2001","2211");
+        return successList.contains(code);
     }
 }
