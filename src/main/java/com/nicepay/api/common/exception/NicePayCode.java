@@ -20,6 +20,8 @@ public enum NicePayCode {
     REQUIRED_DATA_NULL("4003", "필수 입력 파라미터가 누락되었습니다. (required data is null)"),
     CANCEL_PAY_FAIL("4004", "승인 요청 취소에 실패하였습니다. (cancel fail)"),
     SERVER_ERROR("5000", "서버 처리중 에러가 발생 했습니다. 관리자에게 문의하세요. (Internal Server Error)"),
+    FAIL_SEND_SMS_LINKED("5001", "SMS 링크 발송에 실패하였습니다."),
+    FAIL_CHECK_SMS_LINKED("5002", "SMS 링크 내역 조회에 실패하였습니다."),
     CODE_ERROR("6000", "미등록된 에러코드입니다. 관리자에게 문의하세요. (Code Error)"),
     FORMAT_ERROR("9996", "데이터 포맷 오류"),
     PARSING_ERROR("9997", "파싱 오류"),

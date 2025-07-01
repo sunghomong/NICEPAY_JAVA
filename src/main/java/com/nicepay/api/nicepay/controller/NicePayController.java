@@ -3,9 +3,7 @@ package com.nicepay.api.nicepay.controller;
 import com.nicepay.api.common.exception.NicePayCode;
 import com.nicepay.api.common.exception.NicePayException;
 import com.nicepay.api.common.model.NicePayResponse;
-import com.nicepay.api.nicepay.model.request.CancelPayRequest;
-import com.nicepay.api.nicepay.model.request.NetCancelRequest;
-import com.nicepay.api.nicepay.model.request.TransactionStatusRequest;
+import com.nicepay.api.nicepay.model.request.*;
 import com.nicepay.api.nicepay.service.NicePayService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -88,4 +86,40 @@ public class NicePayController {
             return new NicePayResponse<>(NicePayCode.SERVER_ERROR,null);
         }
     }
+
+    /**
+     * 결제 문자 발송
+     *
+     * @return NicePayResponse<Void>
+     * */
+    @PostMapping("/sendSmsLinked")
+    public NicePayResponse<?> sendSmsLinked(@RequestBody CallSendSmsLinkedRequest request) {
+        try {
+            nicePayService.sendSmsLinked(request);
+
+            return new NicePayResponse<>(NicePayCode.OK,null);
+        }catch (NicePayException ne) {
+            return new NicePayResponse<>(ne.getCode(),ne.getMessage());
+        }catch (Exception e) {
+            log.error("[nice pay] 결제문자 발송 실패 err : ", e);
+            return new NicePayResponse<>(NicePayCode.SERVER_ERROR,null);
+        }
+    }
+
+    /**
+     * sms 링크 내역 조회
+     * @return NicePayResponse<Void>
+     * */
+    @PostMapping("/checkSmsLinked")
+    public NicePayResponse<?> checkSmsLinked(@RequestBody CallCheckSmsLinkedRequest request) {
+        try {
+            return new NicePayResponse<>(NicePayCode.OK,nicePayService.getSmsLinkedDetail(request));
+        }catch (NicePayException ne) {
+            return new NicePayResponse<>(ne.getCode(),ne.getMessage());
+        }catch (Exception e) {
+            log.error("[nice pay] 결제문자 발송 실패 err : ", e);
+            return new NicePayResponse<>(NicePayCode.SERVER_ERROR,null);
+        }
+    }
+
 }

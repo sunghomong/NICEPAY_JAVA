@@ -2,14 +2,11 @@ package com.nicepay.api.nicepay.service;
 
 import com.nicepay.api.common.exception.NicePayCode;
 import com.nicepay.api.common.exception.NicePayException;
+import com.nicepay.api.common.model.NicePayAPIResponse;
 import com.nicepay.api.common.util.Connection;
 import com.nicepay.api.common.util.ValidCheck;
-import com.nicepay.api.nicepay.model.request.CancelPayRequest;
-import com.nicepay.api.nicepay.model.request.NetCancelRequest;
-import com.nicepay.api.nicepay.model.request.TransactionStatusRequest;
-import com.nicepay.api.nicepay.model.response.CancelPayResponse;
-import com.nicepay.api.nicepay.model.response.NetCancelResponse;
-import com.nicepay.api.nicepay.model.response.TransactionStatusResponse;
+import com.nicepay.api.nicepay.model.request.*;
+import com.nicepay.api.nicepay.model.response.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -18,6 +15,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.nio.charset.Charset;
@@ -43,6 +41,9 @@ public class NicePayService {
     private String transactionStatusUrl;
     @Value("${nicepay.cancelUrl}")
     private String cancelUrl;
+
+    @Value("${nicepay.sendSmsLinked}")
+    private String smsPayUrl;
 
     private static final long SCHEDULE_DELAY_10_MS = 10 * 60 * 1000;
     private final ThreadPoolTaskScheduler scheduler;
@@ -91,7 +92,8 @@ public class NicePayService {
 
     /**
      * 망취소 요청
-     * @apiNote 1 dept : 인증 요청 (이때 스케쥴러 동작)
+     * @apiNote
+     * 1 dept : 인증 요청 (이때 스케쥴러 동작)
      * -> 2 dept : 결제 시 인증 응답
      * -> 3 dept : 응답 때 정보들 내부에 저장 후 데이터 일치 하는 지 여부 판단 후 망 취소 요청
      *
@@ -130,22 +132,10 @@ public class NicePayService {
                 NetCancelResponse.class
         );
 
-        if (!response.getResultCode().equals("2001")){
+        if (!"2001".equals(response.getResultCode())){
             log.error("[nice pay] 망 취소 실패 error code : {}, error msg : {}",response.getErrorCd(),response.getErrorMsg());
             throw new NicePayException(NicePayCode.NET_CANCEL_FAIL.getCode(),response.getErrorMsg());
         }
-    }
-
-    /**
-     * EUC-KR x-www-form-urlencoded 헤더 세팅
-     *
-     * @return HttpHeaders
-     */
-    public static HttpHeaders createFormHeaders() {
-        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-        headers.setContentType(new MediaType("application", "x-www-form-urlencoded",  Charset.forName("EUC-KR")));
-
-        return headers;
     }
 
     public void scheduleNetCancel(NetCancelRequest request) throws NicePayException {
@@ -210,8 +200,161 @@ public class NicePayService {
         return response;
     }
 
+    public void sendSmsLinked(CallSendSmsLinkedRequest request) throws NicePayException {
+        ValidCheck.validNullCheck(
+                request.getSid(),
+                request.getTrDtm(),
+                request.getMid(),
+                request.getUsrId(),
+                request.getEncKey(),
+                request.getGoodsNm(),
+                request.getOrdNm(),
+                request.getOrdEmail(),
+                request.getOrdHpNo(),
+                request.getType()
+        );
+
+        SendSmsLinkedRequest requestData = new SendSmsLinkedRequest();
+
+        NicePayHeader header = settingRequestNicePayHeader(request.getSid(),request.getTrDtm());
+        SendSmsLinkedRequest.Body body = getSendSmsLinkedBody(request);
+
+        requestData.setHeader(header);
+        requestData.setBody(body);
+
+        NicePayAPIResponse<SendSmsLinkedResponse> response = Connection.sendJSONRequest(
+                smsPayUrl,
+                requestData,
+                SendSmsLinkedResponse.class
+        );
+
+        NicePayHeader responseHeader = response.getHeader();
+        if ("0000".equals(responseHeader.getResCode())) {
+            log.debug("SUCCESS");
+            SendSmsLinkedResponse responseBody = response.getBody();
+
+            /* 유효성 검사도 가능 */
+            if (!header.getSid().equals(responseHeader.getSid()) || header.getTrDtm().equals(responseHeader.getTrDtm())) {
+                log.error("요청 전송값과 일치하지 않음 : requestHeader : {}, response : {} ", header , responseHeader);
+                throw new NicePayException(NicePayCode.FAIL_SEND_SMS_LINKED);
+            }
+
+            /* PG 사에서 전달해준 PK 로 SMS 내역 조회 가능 내부 DB 처리 필요함 */
+            for (SendSmsLinkedResponse.DataItem item : responseBody.getData()) {
+                log.debug("certify Key : {}", item.getReqId());
+            }
+        }
+
+    }
+
+    /**
+     * SMS 링크 내역 조회
+     *
+     * @param request SmsLinkedRequest
+     * @return SmsLinkedResponse 성공 0000
+     * */
+    public SmsLinkedResponse getSmsLinkedDetail(@RequestBody CallCheckSmsLinkedRequest request) throws NicePayException {
+        log.debug("[nice pay] SMS 링크 내역 조회");
+
+        GetSmsLinkedDetailRequest requestData = new GetSmsLinkedDetailRequest();
+
+        NicePayHeader header = settingRequestNicePayHeader(request.getSid(),request.getTrDtm());
+        GetSmsLinkedDetailRequest.Body body = settingGetSmsLinkedBody(request);
+
+        requestData.setHeader(header);
+        requestData.setBody(body);
+
+        NicePayAPIResponse<GetSmsLinkedDetailResponse> response = Connection.sendJSONRequest(
+                smsPayUrl,
+                requestData,
+                GetSmsLinkedDetailResponse.class
+        );
+
+        NicePayHeader responseHeader = response.getHeader();
+
+        if ("0000".equals(responseHeader.getResCode())) {
+            return setSuccessSmsLinkedDetailResponse(response.getBody());
+        } else{
+            log.error("[SMS 링크 내역 조회] err code : {}, err msg : {}", responseHeader.getResCode(), responseHeader.getResMsg());
+            throw new NicePayException(NicePayCode.FAIL_CHECK_SMS_LINKED);
+        }
+    }
+
+    private GetSmsLinkedDetailRequest.Body settingGetSmsLinkedBody(CallCheckSmsLinkedRequest request) {
+        GetSmsLinkedDetailRequest.Body body = new GetSmsLinkedDetailRequest.Body();
+
+        body.setUsrId(request.getUsrId());
+        body.setEncKey(request.getEncKey());
+        body.setMid(request.getMid());
+        body.setReqId(request.getReqId());
+
+        return body;
+    }
+
+    /**
+     * EUC-KR x-www-form-urlencoded 헤더 세팅
+     *
+     * @return HttpHeaders
+     */
+    public static HttpHeaders createFormHeaders() {
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(new MediaType("application", "x-www-form-urlencoded",  Charset.forName("EUC-KR")));
+
+        return headers;
+    }
+
     private boolean isResponseSuccessCheck(String code) {
         List<String> successList = Arrays.asList("2001","2211");
         return successList.contains(code);
+    }
+
+    /**
+     * 링크 내역 조회 response set
+     * */
+    private SmsLinkedResponse setSuccessSmsLinkedDetailResponse(GetSmsLinkedDetailResponse body) {
+        SmsLinkedResponse linkedResponse = new SmsLinkedResponse("0000","SUCCESS");
+
+        linkedResponse.setRegDt(body.getReqDt());
+        linkedResponse.setAuthCl(body.getAuthCl());
+        linkedResponse.setDataCnt(body.getDataCnt());
+        linkedResponse.setDetailList(body.getData());
+
+        return linkedResponse;
+    }
+
+    private static SendSmsLinkedRequest.Body getSendSmsLinkedBody(CallSendSmsLinkedRequest request) {
+//        ObjectMapper mapper = new ObjectMapper();
+//        SendSmsLinkedRequest.Body body = mapper.convertValue(request, SendSmsLinkedRequest.Body.class);
+
+        SendSmsLinkedRequest.Body body = new SendSmsLinkedRequest.Body();
+
+        body.setUsrId(request.getUsrId());
+        body.setEncKey(request.getEncKey());
+        body.setMid(request.getMid());
+        body.setGoodsNm(request.getGoodsNm());
+        body.setGoodsAmt(request.getGoodsAmt());
+        body.setOrdNm(request.getOrdNm());
+        body.setOrdEmail(request.getOrdEmail());
+        body.setOrdHpNo(request.getOrdHpNo());
+        body.setType(request.getType());
+        body.setLogoImageUrl(request.getLogoImageUrl());
+        body.setSkinType(request.getSkinType());
+        body.setOrdBusNo(request.getOrdBusNo());
+        body.setSendType(request.getSendType());
+        body.setPayLimitDt(request.getPayLimitDt());
+        body.setMultiSelectQuota(request.getMultiSelectQuota());
+        body.setMallReserved(request.getMallReserved());
+
+        return body;
+    }
+
+    private NicePayHeader settingRequestNicePayHeader(String sid, String trDtm) {
+        NicePayHeader header = new NicePayHeader();
+
+        header.setSid(sid);
+        header.setTrDtm(trDtm);
+        header.setGubun("S");
+
+        return header;
     }
 }
