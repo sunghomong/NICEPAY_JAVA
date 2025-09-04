@@ -67,7 +67,7 @@ Java/Spring 기반의 NICEPAY 결제 시스템 연동 모듈입니다.
 
 ## 🖥 References
 
-RESTful API
+RESTful API  
 [승인](https://developers.nicepay.co.kr/manual-auth.php#api_request_data)  
 [망취소](https://developers.nicepay.co.kr/manual-auth.php#flow-netcancel-detail)  
 [승인취소](https://developers.nicepay.co.kr/manual-auth.php#parameter-cancel-request)  
