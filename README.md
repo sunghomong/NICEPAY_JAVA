@@ -13,7 +13,7 @@ Java/Spring 기반의 NICEPAY 결제 시스템 연동 모듈입니다.
 
 ## 기술 스택 (Tech Stack)
 
-- **Back End**: Java, Spring Boot, REST API
+- **Back End**: Java, Spring Boot, REST API, Redis
 - **세부 기술**:
     - 멀티스레딩: `ScheduledExecutorService` 기반 비동기 작업 스케줄링 및 동시성 처리
     - AOP: `@RestControllerAdvice` 활용 전역 예외 처리
