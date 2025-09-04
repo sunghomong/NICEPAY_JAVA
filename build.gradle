@@ -7,7 +7,8 @@ plugins {
 group = 'basic'
 version = '0.0.1-SNAPSHOT'
 
-ext.springVersion = '5.3.19'
+// 이 부분은 필요 없습니다. Spring Boot가 자동으로 관리합니다.
+// ext.springVersion = '5.3.19'
 
 java {
     toolchain {
@@ -26,23 +27,30 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter'
+    // 필요한 Spring Boot Starter만 추가하세요.
+    // starter에 필요한 다른 라이브러리(jackson, spring-core 등)가 모두 포함되어 있습니다.
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // 이 부분만 남겨둡니다.
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // 수동으로 추가한 Spring 5.x 및 Jackson 2.13.3 종속성은 모두 제거해야 합니다.
+    // Spring Boot 3.4.0이 더 최신 버전의 Jackson을 자동으로 포함하고 있습니다.
+    /*
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.13.3'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.13.3'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.13.3'
-    // spring
     implementation group: 'org.springframework', name: 'spring-webmvc', version: "${springVersion}"
     implementation group: 'org.springframework', name: 'spring-core', version: "${springVersion}"
     implementation group: 'org.springframework', name: 'spring-context', version: "${springVersion}"
     implementation group: 'org.springframework', name: 'spring-aop', version: "${springVersion}"
     implementation group: 'org.springframework', name: 'spring-context-support', version: "${springVersion}"
-
-    implementation 'org.springframework.boot:spring-boot-starter-security'
+    */
 }
 
 tasks.named('test') {
