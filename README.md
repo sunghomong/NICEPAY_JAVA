@@ -68,16 +68,8 @@ Java/Spring 기반의 NICEPAY 결제 시스템 연동 모듈입니다.
 ## 🖥 References
 
 RESTful API
-https://sas-study.tistory.com/265
-https://m.blog.naver.com/genycho/221309436556
-
-Git
-https://medium.com/hashbox/git-commit-%EB%A9%94%EC%84%B8%EC%A7%80-%EA%B7%9C%EC%B9%99-conventional-commits-71710f7f53c
-https://meetup.toast.com/posts/106
-https://javakong.tistory.com/217
-
-AWS
-https://aws.amazon.com/ko/getting-started/hands-on/create-mysql-db/
-https://leveloper.tistory.com/18
-https://twofootdog.tistory.com/41
-https://miniminis.github.io/2019/10/13/spring/springboot-deploy/
+[승인](https://developers.nicepay.co.kr/manual-auth.php#api_request_data)
+[망취소](https://developers.nicepay.co.kr/manual-auth.php#flow-netcancel-detail)
+[승인취소](https://developers.nicepay.co.kr/manual-auth.php#parameter-cancel-request)
+[결제조호](https://developers.nicepay.co.kr/manual-status.php#status-check-description)
+[나이스페이 메뉴얼](https://github.com/nicepayments/nicepay-manual)
