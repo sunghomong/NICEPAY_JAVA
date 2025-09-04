@@ -62,14 +62,14 @@ Java/Spring 기반의 NICEPAY 결제 시스템 연동 모듈입니다.
 
 ## 📝 Posting
 
-[나이스페이 망취소 API 도입기](https://sunghomong.github.io/posts/service-nicePay_java01/)
-[결제 조회 API 연동](https://sunghomong.github.io/posts/service-nicePay_java/)
+[나이스페이 망취소 API 도입기](https://sunghomong.github.io/posts/service-nicePay_java01/)  
+[결제 조회 API 연동](https://sunghomong.github.io/posts/service-nicePay_java/)  
 
 ## 🖥 References
 
 RESTful API
-[승인](https://developers.nicepay.co.kr/manual-auth.php#api_request_data)
-[망취소](https://developers.nicepay.co.kr/manual-auth.php#flow-netcancel-detail)
-[승인취소](https://developers.nicepay.co.kr/manual-auth.php#parameter-cancel-request)
-[결제조호](https://developers.nicepay.co.kr/manual-status.php#status-check-description)
-[나이스페이 메뉴얼](https://github.com/nicepayments/nicepay-manual)
+[승인](https://developers.nicepay.co.kr/manual-auth.php#api_request_data)  
+[망취소](https://developers.nicepay.co.kr/manual-auth.php#flow-netcancel-detail)  
+[승인취소](https://developers.nicepay.co.kr/manual-auth.php#parameter-cancel-request)  
+[결제조호](https://developers.nicepay.co.kr/manual-status.php#status-check-description)  
+[나이스페이 메뉴얼](https://github.com/nicepayments/nicepay-manual)  
